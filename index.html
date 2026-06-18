@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f7f5ee">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="일본어암기">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <title>일본어 단어 암기</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="assets/icon-192.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand-block">
+        <img src="assets/app-mark.svg" alt="" class="brand-mark">
+        <div>
+          <h1>일본어 단어 암기</h1>
+          <p id="summaryText">저장된 단어 0개</p>
+        </div>
+      </div>
+      <button class="icon-button" id="exportButton" type="button" title="백업 내보내기" aria-label="백업 내보내기">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 15v4h14v-4"/></svg>
+      </button>
+    </header>
+
+    <main>
+      <section class="entry-panel" aria-labelledby="entryTitle">
+        <div class="section-title-row">
+          <h2 id="entryTitle">새 일본어 단어</h2>
+          <span id="editBadge" class="edit-badge" hidden>수정 중</span>
+        </div>
+        <form id="wordForm" class="word-form">
+          <label>
+            <span>단어</span>
+            <input id="wordInput" type="text" autocomplete="off" maxlength="100" required>
+          </label>
+          <label>
+            <span>뜻</span>
+            <textarea id="meaningInput" rows="3" maxlength="200" required></textarea>
+          </label>
+          <label>
+            <span>발음</span>
+            <input id="pronunciationInput" type="text" autocomplete="off" maxlength="100" placeholder="히라가나" required>
+          </label>
+          <div class="form-actions">
+            <button class="primary-button" type="submit" id="saveButton">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg>
+              저장
+            </button>
+            <button class="ghost-button" type="button" id="cancelEditButton" hidden>취소</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="study-panel" aria-labelledby="studyTitle">
+        <div class="section-title-row">
+          <h2 id="studyTitle">랜덤 학습</h2>
+          <span id="studyModeText">준비됨</span>
+        </div>
+        <div class="quiz-box" id="quizBox">
+          <p class="quiz-label" id="quizLabel">문제</p>
+          <p class="quiz-text" id="quizText">일본어 단어를 추가하면 바로 학습할 수 있습니다.</p>
+          <div class="answer-block" id="answerBlock" hidden></div>
+        </div>
+        <div class="study-actions">
+          <button class="primary-button" type="button" id="studyButton">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 5 11 7-11 7V5Z"/></svg>
+            시작
+          </button>
+          <button class="ghost-button" type="button" id="answerButton" disabled>정답</button>
+        </div>
+      </section>
+
+      <section class="list-panel" aria-labelledby="listTitle">
+        <div class="section-title-row list-title-row">
+          <h2 id="listTitle">단어 목록</h2>
+          <button class="text-button" type="button" id="importButton">가져오기</button>
+        </div>
+        <div class="search-row">
+          <input id="searchInput" type="search" placeholder="단어, 뜻, 발음 검색" autocomplete="off">
+        </div>
+        <ul id="wordList" class="word-list"></ul>
+        <p id="emptyText" class="empty-text">아직 저장된 일본어 단어가 없습니다.</p>
+      </section>
+    </main>
+  </div>
+
+  <input id="fileInput" type="file" accept="application/json,.json" hidden>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
