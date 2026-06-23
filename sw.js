@@ -1,5 +1,5 @@
 const CACHE_PREFIX = "japanese-words-memorization-";
-const CACHE_NAME = `${CACHE_PREFIX}app-shell-v5`;
+const CACHE_NAME = `${CACHE_PREFIX}app-shell-v6`;
 const APP_SHELL = [
   "./",
   "./index.html",

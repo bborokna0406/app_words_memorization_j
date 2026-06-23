@@ -1,6 +1,6 @@
 // 이 키는 앱 업데이트 후에도 기존 단어를 유지하기 위해 변경하지 않습니다.
 const STORAGE_KEY = "japanese-words-memorization-v1";
-const APP_VERSION = "2026.06.23.4";
+const APP_VERSION = "2026.06.23.5";
 
 const state = {
   words: [],
@@ -70,13 +70,6 @@ function saveWords() {
 
 function normalizeText(value) {
   return String(value || "").trim();
-}
-
-function copyToEmptyPairedField(source, target) {
-  const value = normalizeText(source.value);
-  if (value && !normalizeText(target.value)) {
-    target.value = value;
-  }
 }
 
 function normalizeWordItem(item) {
@@ -435,12 +428,6 @@ function registerServiceWorker() {
 }
 
 elements.wordForm.addEventListener("submit", upsertWord);
-elements.wordInput.addEventListener("blur", () => {
-  copyToEmptyPairedField(elements.wordInput, elements.pronunciationInput);
-});
-elements.pronunciationInput.addEventListener("blur", () => {
-  copyToEmptyPairedField(elements.pronunciationInput, elements.wordInput);
-});
 elements.cancelEditButton.addEventListener("click", () => {
   clearForm();
   showToast("수정을 취소했습니다.");
