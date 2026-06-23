@@ -1,6 +1,6 @@
 // 이 키는 앱 업데이트 후에도 기존 단어를 유지하기 위해 변경하지 않습니다.
 const STORAGE_KEY = "japanese-words-memorization-v1";
-const APP_VERSION = "2026.06.23.3";
+const APP_VERSION = "2026.06.23.4";
 
 const state = {
   words: [],
@@ -70,6 +70,13 @@ function saveWords() {
 
 function normalizeText(value) {
   return String(value || "").trim();
+}
+
+function copyToEmptyPairedField(source, target) {
+  const value = normalizeText(source.value);
+  if (value && !normalizeText(target.value)) {
+    target.value = value;
+  }
 }
 
 function normalizeWordItem(item) {
@@ -184,13 +191,28 @@ function clearForm() {
 function upsertWord(event) {
   event.preventDefault();
 
-  const word = normalizeText(elements.wordInput.value);
+  let word = normalizeText(elements.wordInput.value);
   const meaning = normalizeText(elements.meaningInput.value);
-  const pronunciation = normalizeText(elements.pronunciationInput.value);
+  let pronunciation = normalizeText(elements.pronunciationInput.value);
 
-  if (!word || !meaning || !pronunciation) {
-    showToast("단어, 뜻, 발음을 모두 입력하세요.");
+  if (!word && !pronunciation) {
+    showToast("단어 또는 발음을 입력하세요.");
     return;
+  }
+
+  if (!meaning) {
+    showToast("뜻을 입력하세요.");
+    return;
+  }
+
+  if (!word) {
+    word = pronunciation;
+    elements.wordInput.value = word;
+  }
+
+  if (!pronunciation) {
+    pronunciation = word;
+    elements.pronunciationInput.value = pronunciation;
   }
 
   const duplicate = state.words.find((item) => {
@@ -413,6 +435,12 @@ function registerServiceWorker() {
 }
 
 elements.wordForm.addEventListener("submit", upsertWord);
+elements.wordInput.addEventListener("blur", () => {
+  copyToEmptyPairedField(elements.wordInput, elements.pronunciationInput);
+});
+elements.pronunciationInput.addEventListener("blur", () => {
+  copyToEmptyPairedField(elements.pronunciationInput, elements.wordInput);
+});
 elements.cancelEditButton.addEventListener("click", () => {
   clearForm();
   showToast("수정을 취소했습니다.");
