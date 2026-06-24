@@ -1,11 +1,15 @@
 // 이 키는 앱 업데이트 후에도 기존 단어를 유지하기 위해 변경하지 않습니다.
 const STORAGE_KEY = "japanese-words-memorization-v1";
-const APP_VERSION = "2026.06.23.5";
+const APP_VERSION = "2026.06.24.1";
 
 const state = {
   words: [],
   editingId: null,
   currentQuestion: null,
+  studyQueue: [],
+  completedCycles: 0,
+  cycleComplete: false,
+  sortMode: "newest",
 };
 
 const icons = {
@@ -34,6 +38,7 @@ const elements = {
   wordList: document.querySelector("#wordList"),
   emptyText: document.querySelector("#emptyText"),
   searchInput: document.querySelector("#searchInput"),
+  sortSelect: document.querySelector("#sortSelect"),
   studyButton: document.querySelector("#studyButton"),
   answerButton: document.querySelector("#answerButton"),
   quizLabel: document.querySelector("#quizLabel"),
@@ -116,6 +121,14 @@ function renderList() {
     return fields.some(({ key }) => item[key].toLowerCase().includes(query));
   });
 
+  if (state.sortMode === "pronunciation") {
+    const collator = new Intl.Collator(["ja", "ko"], { sensitivity: "base", numeric: true });
+    filteredWords.sort((a, b) => {
+      return collator.compare(a.pronunciation, b.pronunciation)
+        || collator.compare(a.word, b.word);
+    });
+  }
+
   elements.wordList.innerHTML = filteredWords.map((item) => `
     <li class="word-item" data-id="${escapeHtml(item.id)}">
       <div class="word-main">
@@ -155,6 +168,16 @@ function renderStudyControls() {
     return;
   }
 
+  if (state.cycleComplete) {
+    elements.quizLabel.textContent = `${state.completedCycles}회독 완료`;
+    elements.quizText.textContent = "목록의 모든 단어를 한 번씩 확인했습니다. 계속 학습할까요?";
+    elements.answerBlock.hidden = true;
+    elements.answerBlock.innerHTML = "";
+    elements.studyModeText.textContent = `${state.completedCycles}회독 완료`;
+    elements.studyButton.innerHTML = `${icons.next}다음`;
+    return;
+  }
+
   if (!state.currentQuestion) {
     elements.quizLabel.textContent = "문제";
     elements.quizText.textContent = "시작을 누르면 단어, 뜻, 발음 중 하나가 무작위로 나옵니다.";
@@ -163,6 +186,24 @@ function renderStudyControls() {
     elements.studyModeText.textContent = "대기 중";
     elements.studyButton.innerHTML = `${icons.play}시작`;
   }
+}
+
+function resetStudySession() {
+  state.currentQuestion = null;
+  state.studyQueue = [];
+  state.completedCycles = 0;
+  state.cycleComplete = false;
+}
+
+function createShuffledStudyQueue() {
+  const queue = state.words.map((item) => item.id);
+
+  for (let index = queue.length - 1; index > 0; index -= 1) {
+    const randomIndex = Math.floor(Math.random() * (index + 1));
+    [queue[index], queue[randomIndex]] = [queue[randomIndex], queue[index]];
+  }
+
+  return queue;
 }
 
 function render() {
@@ -230,6 +271,7 @@ function upsertWord(event) {
   }
 
   saveWords();
+  resetStudySession();
   clearForm();
   render();
 }
@@ -262,9 +304,7 @@ function deleteWord(id) {
   }
 
   state.words = state.words.filter((item) => item.id !== id);
-  if (state.currentQuestion && state.currentQuestion.id === id) {
-    state.currentQuestion = null;
-  }
+  resetStudySession();
 
   saveWords();
   clearForm();
@@ -277,7 +317,27 @@ function pickQuestion() {
     return;
   }
 
-  const item = state.words[Math.floor(Math.random() * state.words.length)];
+  if (state.currentQuestion && state.studyQueue.length === 0) {
+    state.completedCycles += 1;
+    state.currentQuestion = null;
+    state.cycleComplete = true;
+    renderStudyControls();
+    return;
+  }
+
+  if (state.cycleComplete || (!state.currentQuestion && state.studyQueue.length === 0)) {
+    state.studyQueue = createShuffledStudyQueue();
+    state.cycleComplete = false;
+  }
+
+  const nextId = state.studyQueue.shift();
+  const item = state.words.find((word) => word.id === nextId);
+  if (!item) {
+    resetStudySession();
+    renderStudyControls();
+    return;
+  }
+
   const questionField = fields[Math.floor(Math.random() * fields.length)];
   const answerFields = fields.filter((field) => field.key !== questionField.key);
 
@@ -295,7 +355,7 @@ function pickQuestion() {
   elements.quizText.textContent = state.currentQuestion.prompt;
   elements.answerBlock.hidden = true;
   elements.answerBlock.innerHTML = "";
-  elements.studyModeText.textContent = "학습 중";
+  elements.studyModeText.textContent = `${state.completedCycles + 1}회독 중`;
   elements.studyButton.innerHTML = `${icons.next}다음`;
   elements.answerButton.disabled = false;
 }
@@ -348,6 +408,7 @@ function importWords(file) {
       state.words = Array.from(byWord.values());
 
       saveWords();
+      resetStudySession();
       render();
       showToast(`${imported.length}개 단어를 가져왔습니다.`);
     } catch {
@@ -434,6 +495,10 @@ elements.cancelEditButton.addEventListener("click", () => {
 });
 elements.wordList.addEventListener("click", handleListClick);
 elements.searchInput.addEventListener("input", renderList);
+elements.sortSelect.addEventListener("change", () => {
+  state.sortMode = elements.sortSelect.value;
+  renderList();
+});
 elements.studyButton.addEventListener("click", pickQuestion);
 elements.answerButton.addEventListener("click", showAnswer);
 elements.exportButton.addEventListener("click", exportWords);

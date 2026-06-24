@@ -79,7 +79,13 @@
       <section class="list-panel" aria-labelledby="listTitle">
         <div class="section-title-row list-title-row">
           <h2 id="listTitle">단어 목록</h2>
-          <button class="text-button" type="button" id="importButton">가져오기</button>
+          <div class="list-tools">
+            <select id="sortSelect" aria-label="단어 목록 정렬">
+              <option value="newest">등록순</option>
+              <option value="pronunciation">발음순</option>
+            </select>
+            <button class="text-button" type="button" id="importButton">가져오기</button>
+          </div>
         </div>
         <div class="search-row">
           <input id="searchInput" type="search" placeholder="단어, 뜻, 발음 검색" autocomplete="off">

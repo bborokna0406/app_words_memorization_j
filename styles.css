@@ -34,7 +34,8 @@ body {
 
 button,
 input,
-textarea {
+textarea,
+select {
   font: inherit;
 }
 
@@ -133,6 +134,21 @@ main {
   justify-content: space-between;
   gap: 12px;
   margin-bottom: 12px;
+}
+
+.list-tools {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.list-tools select {
+  min-height: 36px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--accent-strong);
+  padding: 0 30px 0 10px;
 }
 
 .edit-badge {
