@@ -1,6 +1,6 @@
 // 이 키는 앱 업데이트 후에도 기존 단어를 유지하기 위해 변경하지 않습니다.
 const STORAGE_KEY = "japanese-words-memorization-v1";
-const APP_VERSION = "2026.06.24.1";
+const APP_VERSION = "2026.06.26.2";
 
 const state = {
   words: [],
@@ -32,6 +32,7 @@ const elements = {
   wordInput: document.querySelector("#wordInput"),
   meaningInput: document.querySelector("#meaningInput"),
   pronunciationInput: document.querySelector("#pronunciationInput"),
+  exampleInput: document.querySelector("#exampleInput"),
   saveButton: document.querySelector("#saveButton"),
   cancelEditButton: document.querySelector("#cancelEditButton"),
   editBadge: document.querySelector("#editBadge"),
@@ -83,6 +84,7 @@ function normalizeWordItem(item) {
     word: normalizeText(item.word),
     pronunciation: normalizeText(item.pronunciation),
     meaning: normalizeText(item.meaning),
+    example: normalizeText(item.example),
     createdAt: Number(item.createdAt) || Date.now(),
   };
 }
@@ -118,7 +120,8 @@ function renderSummary() {
 function renderList() {
   const query = normalizeText(elements.searchInput.value).toLowerCase();
   const filteredWords = state.words.filter((item) => {
-    return fields.some(({ key }) => item[key].toLowerCase().includes(query));
+    return fields.some(({ key }) => item[key].toLowerCase().includes(query))
+      || item.example.toLowerCase().includes(query);
   });
 
   if (state.sortMode === "pronunciation") {
@@ -135,6 +138,7 @@ function renderList() {
         <strong>${escapeHtml(item.word)}</strong>
         <span class="word-pronunciation">${escapeHtml(item.pronunciation)}</span>
         <span>${escapeHtml(item.meaning)}</span>
+        ${item.example ? `<span class="word-example">${escapeHtml(item.example)}</span>` : ""}
       </div>
       <div class="item-actions">
         <button type="button" data-action="edit" title="수정" aria-label="${escapeHtml(item.word)} 수정">
@@ -217,6 +221,7 @@ function clearForm() {
   elements.wordInput.value = "";
   elements.meaningInput.value = "";
   elements.pronunciationInput.value = "";
+  elements.exampleInput.value = "";
   elements.editBadge.hidden = true;
   elements.cancelEditButton.hidden = true;
   elements.saveButton.innerHTML = `${icons.save}저장`;
@@ -228,6 +233,7 @@ function upsertWord(event) {
   let word = normalizeText(elements.wordInput.value);
   const meaning = normalizeText(elements.meaningInput.value);
   let pronunciation = normalizeText(elements.pronunciationInput.value);
+  const example = normalizeText(elements.exampleInput.value);
 
   if (!word && !pronunciation) {
     showToast("단어 또는 발음을 입력하세요.");
@@ -256,6 +262,7 @@ function upsertWord(event) {
   if (duplicate) {
     duplicate.meaning = meaning;
     duplicate.pronunciation = pronunciation;
+    duplicate.example = example;
     showToast("이미 있는 단어의 뜻과 발음을 수정했습니다.");
   } else if (state.editingId) {
     const target = state.words.find((item) => item.id === state.editingId);
@@ -263,10 +270,11 @@ function upsertWord(event) {
       target.word = word;
       target.meaning = meaning;
       target.pronunciation = pronunciation;
+      target.example = example;
       showToast("단어를 수정했습니다.");
     }
   } else {
-    state.words.unshift({ id: createId(), word, pronunciation, meaning, createdAt: Date.now() });
+    state.words.unshift({ id: createId(), word, pronunciation, meaning, example, createdAt: Date.now() });
     showToast("일본어 단어를 저장했습니다.");
   }
 
@@ -286,6 +294,7 @@ function editWord(id) {
   elements.wordInput.value = target.word;
   elements.meaningInput.value = target.meaning;
   elements.pronunciationInput.value = target.pronunciation;
+  elements.exampleInput.value = target.example || "";
   elements.editBadge.hidden = false;
   elements.cancelEditButton.hidden = false;
   elements.saveButton.innerHTML = `${icons.edit}수정`;
@@ -340,15 +349,23 @@ function pickQuestion() {
 
   const questionField = fields[Math.floor(Math.random() * fields.length)];
   const answerFields = fields.filter((field) => field.key !== questionField.key);
+  const answers = answerFields.map((field) => ({
+    label: field.label,
+    value: item[field.key],
+  }));
+
+  if (item.example) {
+    answers.push({
+      label: "\uC608\uBB38",
+      value: item.example,
+    });
+  }
 
   state.currentQuestion = {
     id: item.id,
     prompt: item[questionField.key],
     label: `${questionField.label}을 보고 맞혀보세요`,
-    answers: answerFields.map((field) => ({
-      label: field.label,
-      value: item[field.key],
-    })),
+    answers,
   };
 
   elements.quizLabel.textContent = state.currentQuestion.label;
