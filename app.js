@@ -1,6 +1,6 @@
 // 이 키는 앱 업데이트 후에도 기존 단어를 유지하기 위해 변경하지 않습니다.
 const STORAGE_KEY = "japanese-words-memorization-v1";
-const APP_VERSION = "2026.06.30.1";
+const APP_VERSION = "2026.06.30.2";
 
 let wordStore = null;
 const duplicateIndexes = {};
@@ -123,7 +123,10 @@ function updateDuplicateWarnings() {
 }
 
 async function loadWords() {
-  wordStore = createWordStore({
+  if (typeof window.createWordStore !== "function") {
+    throw new Error("word-store.js is missing");
+  }
+  wordStore = window.createWordStore({
     storageKey: STORAGE_KEY,
     normalizeItem: normalizeWordItem,
     isValidItem: isCompleteWord,
@@ -603,7 +606,12 @@ elements.fileInput.addEventListener("change", () => {
 
 async function initializeApp() {
   elements.saveButton.disabled = true;
-  await loadWords();
+  try {
+    await loadWords();
+  } catch {
+    showToast("앱 파일이 완전히 배포되지 않았습니다.");
+    return;
+  }
   updateDuplicateWarnings();
   render();
   registerServiceWorker();
