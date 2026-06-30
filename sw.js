@@ -1,9 +1,10 @@
 const CACHE_PREFIX = "japanese-words-memorization-";
-const CACHE_NAME = `${CACHE_PREFIX}app-shell-v9`;
+const CACHE_NAME = `${CACHE_PREFIX}app-shell-v10`;
 const APP_SHELL = [
   "./",
   "./index.html",
   "./styles.css",
+  "./word-store.js",
   "./app.js",
   "./manifest.webmanifest",
   "./version.json",

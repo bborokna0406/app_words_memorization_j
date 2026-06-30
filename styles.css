@@ -194,6 +194,21 @@ textarea:focus {
   box-shadow: 0 0 0 3px rgba(31, 122, 107, 0.14);
 }
 
+.word-form input.is-duplicate,
+.word-form textarea.is-duplicate,
+.word-form input.is-duplicate:focus,
+.word-form textarea.is-duplicate:focus {
+  border-color: #b42318;
+  box-shadow: 0 0 0 3px rgba(180, 35, 24, 0.12);
+}
+
+.duplicate-message {
+  color: #b42318;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
 .form-actions,
 .study-actions,
 .search-row {
